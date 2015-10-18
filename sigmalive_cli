@@ -1,0 +1,33 @@
+#!/bin/bash
+CRED="\e[31m"
+CNORMAL="\e[0m"
+function fetchEpisode(){
+	curl -s http://www.sigmatv.com/shows/$1/episodes/$2 |grep   -oP '\<source type=\"video\/mp4\" src=[^"]*"\K[^"]*'
+}
+function playEpisode(){
+	local _episode=$(fetchEpisode $1 $2)
+	[ "$_episode" ]||{ echo -e "$CRED Episode not found $CNORMAL" ; exit 1; }
+	mplayer -cache 32768 -cache-min 25 $_episode
+}
+function fetchFirstEpisodePage(){
+	local __nextPage=""
+	local __currentPage=${2:-$(echo http://www.sigmatv.com/shows/$1/episodes)}
+	__nextPage=$(curl -s $__currentPage |grep -oP '<li class="next"><a href=[^"]*"\K[^"]*')	
+	[ "$__nextPage" ]||{ echo $__currentPage; return 0; }
+	fetchFirstEpisodePage $1 $__nextPage
+
+}
+function fetchFirstEpisodeId(){ 
+	local __firstEpisodePage=$(fetchFirstEpisodePage $1)
+	local __videoPage=$(curl -s $__firstEpisodePage|tr -d '\040\011\012\015' |tac|grep -oP '<divclass="video_thumb_newlisted"><ahref=[^"]*"\K[^"]*'|tail -n 1)
+	echo "${__videoPage##*/}"
+	
+}
+#to do: attribute validation
+#and documentation
+
+FEID=$(fetchFirstEpisodeId $1)
+EID=$(($FEID+$2-1))
+echo playing $1 with episode id $EID \(first episode id: $FEID\)
+playEpisode $1 $EID
+
