@@ -16,7 +16,7 @@ function fetchEpisode(){
 function playEpisode(){
 	local _episode=$(fetchEpisode $1 $2)
 	[ "$_episode" ]||{ echo -e "$CRED Episode not found $CNORMAL" ; exit 1; }
-	mplayer -cache 32768 -cache-min 25 $_episode
+	mplayer -cache 25600 -cache-min 8 $_episode
 }
 
 function fetchFirstEpisodePage(){
