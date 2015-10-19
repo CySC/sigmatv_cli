@@ -3,48 +3,63 @@ CRED="\e[31m"
 CNORMAL="\e[0m"
 
 function docInfo(){
-	echo -e "$CRED Example usage: ./sigmalive_cli <show> <episode_number(optional, eg.1)>"
-	echo -e "$CRED Please provide as arguments one of the following shows and an episode number [default:1]"
-	curl -s http://www.sigmatv.com/shows/|grep -oP '<div class=\"readmore\"><a href=[^"]*"\K[^"]*'| while read line ; do echo ${line##*/} ; done
+	echo -e "$CRED Example usage: ./sigmalive_cli <show>"\
+		"<season eg.1> <episode_number(optional, eg.1)>"
+	echo -e "$CRED Please provide as arguments one of the following"\
+		" shows season[default:1] and an episode number [default:1]"
+	curl -s http://www.sigmatv.com/shows/|tr -d '\040\011\012\015'\
+	|grep -oP '<li><ahref=[^"]*"\K[^"]*'\
+	|while read line ; do 
+		[[ $line == *www* || $line == *category* ]] || \
+		([[ $line == *show* ]] && echo ${line##*/})
+	done
 	echo -e "$CNORMAL"
 }
 
 function fetchEpisode(){
-	curl -s http://www.sigmatv.com/shows/$1/episodes/$2 |grep   -oP '\<source type=\"video\/mp4\" src=[^"]*"\K[^"]*'
+	curl -s http://www.sigmatv.com/shows/$1/episodes/$2 \
+	|grep   -oP '\<source type=\"video\/mp4\" src=[^"]*"\K[^"]*'
 }
 
 function playEpisode(){
-	local _episode=$(fetchEpisode $1 $2)
-	[ "$_episode" ]||{ echo -e "$CRED Episode not found $CNORMAL" ; exit 1; }
-	mplayer -cache 25600 -cache-min 8 $_episode
+	local __episode=$(fetchEpisode $1 $2)
+	[ "$__episode" ]||{ echo -e \
+	"$CRED Episode not found $CNORMAL" ; exit 1; }
+	mplayer -cache 25600 -cache-min 8 $__episode
 }
 
-function fetchFirstEpisodePage(){
-	local __nextPage=""
-	local __currentPage=${2:-$(echo http://www.sigmatv.com/shows/$1/episodes)}
-	__nextPage=$(curl -s $__currentPage |grep -oP '<li class="next"><a href=[^"]*"\K[^"]*')	
-	[ "$__nextPage" ]||{ echo $__currentPage; return 0; }
-	fetchFirstEpisodePage $1 $__nextPage
-
+function fetchSeasonId(){
+	local __seasonPage=$(curl -s\
+	http://www.sigmatv.com/shows/$1/episodes\
+	|tr -d '\040\011\012\015'\
+	|grep -oP '<liclass="font_sm"><ahref=[^"]*"\K[^"]*'\
+	|awk "NR==$2")
+	echo "${__seasonPage##*/}"
 }
 
 function fetchFirstEpisodeId(){ 
-	local __firstEpisodePage=$(fetchFirstEpisodePage $1)
-	local __videoPage=$(curl -s $__firstEpisodePage|tr -d '\040\011\012\015' |tac|grep -oP '<divclass="video_thumb_newlisted"><ahref=[^"]*"\K[^"]*'|tail -n 1)
-	echo "${__videoPage##*/}"
-	
+	local __seasonId=$(fetchSeasonId $1 $2)
+	local __videoPage=$(curl -s \
+	http://www.sigmatv.com/shows/$1/episodes/season/$__seasonId\
+	|tr -d '\040\011\012\015' \
+	|grep -Po '(?<=season_outer).*(?=season_outer)' \
+	|grep -Po '<ahref=[^"]*"\K[^"]*'|tail -n 1)
+	echo "${__videoPage##*/}"	
 }
 
 #to do: attribute validation
 #and documentation
 [ "$1" ]||{ docInfo ; exit 1; }
-ENUMBER=$2
+ENUMBER=$3
+SNUMBER=$2
 if [[ ! $ENUMBER -gt 0 ]];then 
 	ENUMBER=1
 fi;
-FEID=$(fetchFirstEpisodeId $1)
+if [[ ! $SNUMBER -gt 0 ]];then 
+        SNUMBER=1
+fi;
+FEID=$(fetchFirstEpisodeId $1 $SNUMBER)
 EID=$(($FEID+$ENUMBER-1))
-
-echo playing $1 with episode id $EID \(first episode id: $FEID\)
+echo playing $1 season $SNUMBER with episode id $EID \(first episode id: $FEID\)
 playEpisode $1 $EID
 
