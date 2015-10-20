@@ -37,13 +37,13 @@ function fetchSeasonId(){
 	echo "${__seasonPage##*/}"
 }
 
-function fetchFirstEpisodeId(){ 
+function fetchEpisodeId(){ 
 	local __seasonId=$(fetchSeasonId $1 $2)
 	local __videoPage=$(curl -s \
 	http://www.sigmatv.com/shows/$1/episodes/season/$__seasonId\
 	|tr -d '\040\011\012\015' \
 	|grep -Po '(?<=season_outer).*(?=season_outer)' \
-	|grep -Po '<ahref=[^"]*"\K[^"]*'|tail -n 1)
+	|grep -Po '<ahref=[^"]*"\K[^"]*'|tac|awk "NR==$3")
 	echo "${__videoPage##*/}"	
 }
 
@@ -58,8 +58,7 @@ fi;
 if [[ ! $SNUMBER -gt 0 ]];then 
         SNUMBER=1
 fi;
-FEID=$(fetchFirstEpisodeId $1 $SNUMBER)
-EID=$(($FEID+$ENUMBER-1))
-echo playing $1 season $SNUMBER with episode id $EID \(first episode id: $FEID\)
+EID=$(fetchEpisodeId $1 $SNUMBER $ENUMBER)
+echo playing $1 season $SNUMBER with episode id $EID 
 playEpisode $1 $EID
 
