@@ -23,6 +23,6 @@
   },
   "bin": {
     "sigmatv": "./bin/sigmatv"
-  }
+  },
   "homepage": "https://github.com/CySC/sigmatv_cli#readme"
 }
