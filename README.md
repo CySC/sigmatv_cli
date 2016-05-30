@@ -13,7 +13,7 @@ To check the list of shows simply run without arguments:
 mplayer
 bash 4+
 ###Optional dependencies:
-npm(for instaation)
+npm(for installation via npm)
 
 ###Install via npm
 `sudo npm install -g "git+https://github.com/CySC/sigmatv_cli.git"`

@@ -25,7 +25,7 @@ function playEpisode(){
 	local __episode=$(fetchEpisode $1 $2)
 	[ "$__episode" ]||{ echo -e \
 	"$CRED Episode not found $CNORMAL" ; exit 1; }
-	mplayer -cache 25600 -cache-min 8 $__episode
+	mplayer $__episode
 }
 
 function fetchSeasonId(){
