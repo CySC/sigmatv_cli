@@ -1,0 +1,28 @@
+{
+  "name": "sigmatv_cli",
+  "version": "0.0.0",
+  "description": "CLI tool used to play sigma tv on demand on your linux machine using mplayer.",
+  "main": "sigmatv",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CySC/sigmatv_cli.git"
+  },
+  "keywords": [
+    "sigma",
+    "tv",
+    "on",
+    "demand"
+  ],
+  "author": "Andreas Galazis",
+  "license": "WTFPL",
+  "bugs": {
+    "url": "https://github.com/CySC/sigmatv_cli/issues"
+  },
+  "bin": {
+    "sigmatv": "./bin/sigmatv"
+  }
+  "homepage": "https://github.com/CySC/sigmatv_cli#readme"
+}

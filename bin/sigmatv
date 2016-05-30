@@ -3,7 +3,7 @@ CRED="\e[31m"
 CNORMAL="\e[0m"
 
 function docInfo(){
-	echo -e "$CRED Example usage: ./sigmalive_cli <show>"\
+	echo -e "$CRED Example usage: ./sigmatv <show>"\
 		"<season eg.1> <episode_number(optional, eg.1)>"
 	echo -e "$CRED Please provide as arguments one of the following"\
 		" shows season[default:1] and an episode number [default:1]"
