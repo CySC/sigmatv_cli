@@ -16,4 +16,4 @@ bash 4+
 npm(for instaation)
 
 ###Install via npm
-`npm install -g git+https://github.com/CySC/sigmatv_cli.git`
+`sudo npm install -g "git+https://github.com/CySC/sigmatv_cli.git"`
