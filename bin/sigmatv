@@ -9,7 +9,7 @@ function docInfo(){
 		" shows season[default:1] and an episode number [default:1]"
 	curl -s http://www.sigmatv.com/shows/|tr -d '\040\011\012\015'\
 	|grep -oP '<li><ahref=[^"]*"\K[^"]*'\
-	|while read line ; do 
+	|while read line ; do
 		[[ $line == *www* || $line == *category* ]] || \
 		([[ $line == *show* ]] && echo ${line##*/})
 	done
@@ -25,7 +25,7 @@ function playEpisode(){
 	local __episode=$(fetchEpisode $1 $2)
 	[ "$__episode" ]||{ echo -e \
 	"$CRED Episode not found $CNORMAL" ; exit 1; }
-	mplayer $__episode
+	mplayer $__episode $SIGMA_MPLAYER_PARAMS $SIGMA_MPLAYER_PARAMS_ENFORCED
 }
 
 function fetchSeasonId(){
@@ -37,28 +37,46 @@ function fetchSeasonId(){
 	echo "${__seasonPage##*/}"
 }
 
-function fetchEpisodeId(){ 
+function fetchEpisodeId(){
 	local __seasonId=$(fetchSeasonId $1 $2)
 	local __videoPage=$(curl -s \
 	http://www.sigmatv.com/shows/$1/episodes/season/$__seasonId\
 	|tr -d '\040\011\012\015' \
 	|grep -Po '(?<=season_outer).*(?=season_outer)' \
 	|grep -Po '<ahref=[^"]*"\K[^"]*'|tac|awk "NR==$3")
-	echo "${__videoPage##*/}"	
+	echo "${__videoPage##*/}"       
 }
 
 #to do: attribute validation
 #and documentation
 [ "$1" ]||{ docInfo ; exit 1; }
-ENUMBER=$3
+#initliazze series, season, episode parameters
+SERIES=$1
 SNUMBER=$2
-if [[ ! $ENUMBER -gt 0 ]];then 
-	ENUMBER=1
-fi;
-if [[ ! $SNUMBER -gt 0 ]];then 
-        SNUMBER=1
-fi;
-EID=$(fetchEpisodeId $1 $SNUMBER $ENUMBER)
-echo playing $1 season $SNUMBER with episode id $EID 
-playEpisode $1 $EID
+ENUMBER=$3
+
+#default season and episode parameters if not provided 
+[[ ! $SNUMBER -gt 0 ]]&& SNUMBER=1;
+[[ ! $ENUMBER -gt 0 ]]&& ENUMBER=1;
+
+#shift  arguments that are not flags
+#first cannot be flag in any case 
+shift;
+#check 2 and 3 
+[ ! $2 == -* ] && shift;
+[ ! $3 == -* ] && shift; 
+
+#overwrites SIGMA_MPLAYER_PARAMS environment variable  with
+#custom configuration from the rest of commandline 
+#arguments if provided
+#(If you intend to setup configuration that is not overwitten
+#if user provides cpmmandline flags  use 
+# SIGMA_MPLAYER_PARAMS_ENFORCED instead)
+
+[ $# -gt 0 ]&&SIGMA_MPLAYER_PARAMS=$@
+
+#fetch episode id 
+EID=$(fetchEpisodeId $SERIES $SNUMBER $ENUMBER)
+echo playing $SERIES season $SNUMBER with episode id $EID 
+playEpisode $SERIES $EID
 
