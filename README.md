@@ -3,7 +3,7 @@ sigmatv cli is a command line client for accessing sigma.com on demand shows.
 CLI tool used to play sigma tv on demand on your linux machine using mplayer.
 ###Example usage: 
 ```sh
-./sigmatv <show_name> <season (optional,Default:1)> <episode_number(optional, Default:1)>
+./sigmatv <show_name> <season (optional,Default:1)> <episode_number(optional, Default:1)> <mplayer flags -...>
 ```
 To check the list of shows simply run without arguments:
 ```sh
